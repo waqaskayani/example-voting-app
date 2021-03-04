@@ -1,0 +1,40 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      docker: 19
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws --version
+      - region=${AWS_REGION}
+      - echo ${DOCKER_PASS} | docker login --username ${DOCKER_USER} --password-stdin
+      - $(aws ecr get-login --region $region --no-include-email)
+      - REPOSITORY_URI_API=390665042662.dkr.ecr.$region.amazonaws.com/test-ecr-worker
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=${COMMIT_HASH:=latest}
+  build:
+    commands:P
+      - echo Build started on `date`
+      - echo Building the Docker images...
+      - echo `pwd`
+      - echo `ls`
+      - cd vote
+      - echo `pwd`
+      - docker build -t test-ecs-worker-app .
+      - docker tag test-ecs-worker-app:latest $REPOSITORY_URI_API:latest
+      - cd ..
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker images...
+      - docker push $REPOSITORY_URI_API:latest
+      - echo Writing image definitions file...
+      - printf '[{"name":"ecs-worker","imageUri":"%s"}]' $REPOSITORY_URI_API:latest > imagedefinitions.json
+      - echo `pwd`
+      - echo `ls -alh`
+      - echo `cat imagedefinitions.json`
+artifacts:
+    files: 
+      - imagedefinitions.json
