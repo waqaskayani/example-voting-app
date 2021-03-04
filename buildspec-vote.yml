@@ -31,10 +31,10 @@ phases:
       - echo Pushing the Docker images...
       - docker push $REPOSITORY_URI_API:latest
       - echo Writing image definitions file...
-      - printf '[{"name":"ecs-vote","imageUri":"%s"}]' $REPOSITORY_URI_API:latest > imagedefinitions_api.json
+      - printf '[{"name":"ecs-vote","imageUri":"%s"}]' $REPOSITORY_URI_API:latest > imagedefinitions.json
       - echo `pwd`
       - echo `ls -alh`
-      - echo `cat imagedefinitions_api.json`
+      - echo `cat imagedefinitions.json`
 artifacts:
     files: 
-      - imagedefinitions_api.json
+      - imagedefinitions.json
